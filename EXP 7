@@ -1,0 +1,263 @@
+1. Product Management App (CRUD with Transactions)
+Database Table:
+CREATE TABLE Product (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100),
+    Price DECIMAL(10,2),
+    Quantity INT
+);
+
+Java Files (MVC Structure):
+Product.java (Model)
+public class Product {
+    private int productID;
+    private String productName;
+    private double price;
+    private int quantity;
+
+    // Constructors, Getters, Setters
+}
+
+ProductDAO.java (Controller)
+import java.sql.*;
+
+public class ProductDAO {
+    private Connection conn;
+
+    public ProductDAO(Connection conn) {
+        this.conn = conn;
+    }
+
+    public void createProduct(Product p) throws SQLException {
+        String sql = "INSERT INTO Product VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, p.getProductID());
+            ps.setString(2, p.getProductName());
+            ps.setDouble(3, p.getPrice());
+            ps.setInt(4, p.getQuantity());
+            ps.executeUpdate();
+        }
+    }
+
+    public void readProducts() throws SQLException {
+        String sql = "SELECT * FROM Product";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                System.out.println(rs.getInt("ProductID") + " - " +
+                                   rs.getString("ProductName") + " - " +
+                                   rs.getDouble("Price") + " - " +
+                                   rs.getInt("Quantity"));
+            }
+        }
+    }
+
+    public void updateProduct(Product p) throws SQLException {
+        String sql = "UPDATE Product SET ProductName=?, Price=?, Quantity=? WHERE ProductID=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, p.getProductName());
+            ps.setDouble(2, p.getPrice());
+            ps.setInt(3, p.getQuantity());
+            ps.setInt(4, p.getProductID());
+            ps.executeUpdate();
+        }
+    }
+
+    public void deleteProduct(int productID) throws SQLException {
+        String sql = "DELETE FROM Product WHERE ProductID=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, productID);
+            ps.executeUpdate();
+        }
+    }
+
+ProductApp.java (View)
+import java.sql.*;
+import java.util.Scanner;
+
+public class ProductApp {
+    public static void main(String[] args) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "root", "password")) {
+            conn.setAutoCommit(false);
+            ProductDAO dao = new ProductDAO(conn);
+            Scanner sc = new Scanner(System.in);
+            int choice;
+
+            do {
+                System.out.println("\n1. Create\n2. Read\n3. Update\n4. Delete\n5. Exit");
+                System.out.print("Enter your choice: ");
+                choice = sc.nextInt();
+
+                try {
+                    switch (choice) {
+                        case 1 -> {
+                            System.out.print("ID: "); int id = sc.nextInt();
+                            System.out.print("Name: "); sc.nextLine(); String name = sc.nextLine();
+                            System.out.print("Price: "); double price = sc.nextDouble();
+                            System.out.print("Qty: "); int qty = sc.nextInt();
+                            dao.createProduct(new Product(id, name, price, qty));
+                        }
+                        case 2 -> dao.readProducts();
+                        case 3 -> {
+                            System.out.print("ID: "); int id = sc.nextInt();
+                            System.out.print("New Name: "); sc.nextLine(); String name = sc.nextLine();
+                            System.out.print("New Price: "); double price = sc.nextDouble();
+                            System.out.print("New Qty: "); int qty = sc.nextInt();
+                            dao.updateProduct(new Product(id, name, price, qty));
+                        }
+                        case 4 -> {
+                            System.out.print("Enter ID to delete: "); int id = sc.nextInt();
+                            dao.deleteProduct(id);
+                        }
+                    }
+                    conn.commit();
+                } catch (Exception e) {
+                    conn.rollback();
+                    System.out.println("Transaction failed: " + e.getMessage());
+                }
+
+            } while (choice != 5);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+
+
+}
+
+
+ 2. Student Management App (Using MVC and JDBC)
+Database Table:
+CREATE TABLE Student (
+    StudentID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Department VARCHAR(50),
+    Marks DOUBLE
+);
+
+Java Files:
+Student.java (Model)
+
+
+public class Student {
+    private int studentID;
+    private String name;
+    private String department;
+    private double marks;
+
+    // Constructors, Getters, Setters
+}
+
+StudentDAO.java (Controller)
+
+
+import java.sql.*;
+
+public class StudentDAO {
+    private Connection conn;
+
+    public StudentDAO(Connection conn) {
+        this.conn = conn;
+    }
+
+    public void addStudent(Student s) throws SQLException {
+        String sql = "INSERT INTO Student VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, s.getStudentID());
+            ps.setString(2, s.getName());
+            ps.setString(3, s.getDepartment());
+            ps.setDouble(4, s.getMarks());
+            ps.executeUpdate();
+        }
+    }
+
+    public void viewAll() throws SQLException {
+        String sql = "SELECT * FROM Student";
+        try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                System.out.println(rs.getInt("StudentID") + " - " +
+                                   rs.getString("Name") + " - " +
+                                   rs.getString("Department") + " - " +
+                                   rs.getDouble("Marks"));
+            }
+        }
+    }
+
+    public void updateStudent(Student s) throws SQLException {
+        String sql = "UPDATE Student SET Name=?, Department=?, Marks=? WHERE StudentID=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, s.getName());
+            ps.setString(2, s.getDepartment());
+            ps.setDouble(3, s.getMarks());
+            ps.setInt(4, s.getStudentID());
+            ps.executeUpdate();
+        }
+    }
+
+    public void deleteStudent(int studentID) throws SQLException {
+        String sql = "DELETE FROM Student WHERE StudentID=?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, studentID);
+            ps.executeUpdate();
+        }
+    }
+}
+StudentApp.java (View)
+
+
+import java.sql.*;
+import java.util.Scanner;
+
+public class StudentApp {
+    public static void main(String[] args) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydb", "root", "password")) {
+            conn.setAutoCommit(false);
+            StudentDAO dao = new StudentDAO(conn);
+            Scanner sc = new Scanner(System.in);
+            int choice;
+
+            do {
+                System.out.println("\n1. Add\n2. View\n3. Update\n4. Delete\n5. Exit");
+                System.out.print("Enter choice: ");
+                choice = sc.nextInt();
+
+                try {
+                    switch (choice) {
+                        case 1 -> {
+                            System.out.print("ID: "); int id = sc.nextInt();
+                            System.out.print("Name: "); sc.nextLine(); String name = sc.nextLine();
+                            System.out.print("Dept: "); String dept = sc.nextLine();
+                            System.out.print("Marks: "); double marks = sc.nextDouble();
+                            dao.addStudent(new Student(id, name, dept, marks));
+                        }
+                        case 2 -> dao.viewAll();
+                        case 3 -> {
+                            System.out.print("ID: "); int id = sc.nextInt();
+                            System.out.print("New Name: "); sc.nextLine(); String name = sc.nextLine();
+                            System.out.print("New Dept: "); String dept = sc.nextLine();
+                            System.out.print("New Marks: "); double marks = sc.nextDouble();
+                            dao.updateStudent(new Student(id, name, dept, marks));
+                        }
+                        case 4 -> {
+                            System.out.print("Enter ID to delete: "); int id = sc.nextInt();
+                            dao.deleteStudent(id);
+                        }
+                    }
+                    conn.commit();
+                } catch (Exception e) {
+                    conn.rollback();
+                    System.out.println("Error occurred: " + e.getMessage());
+                }
+
+            } while (choice != 5);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
